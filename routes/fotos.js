@@ -4,7 +4,7 @@ var router = express.Router();
 const Sequelize = require('sequelize');
 const Foto = require('../models').foto;
 const Etiqueta = require('../models').etiqueta;
-const {sequelize, Op} = require('sequelize');
+const {Op} = require('sequelize');
 
 router.get('/findAll/json',
     function(req, res, next) {
@@ -76,12 +76,40 @@ router.get('/findAll/json',
                 attributes: ['texto'],
                 through: {attributes: []}
                 }],
-                where: {[Op.and]: [{id: id}]}})
+                where: {
+                    id: {[Op.and]: [id]}
+        
+                }
+                })
                 .then(fotos => {
                 res.json(fotos);
                 })
                 .catch(error =>
                 res.status(400).send(error))});
-    
-        
+
+
+                router.get('/findAllById/:id/view', function(req, res, next) {
+                    let id = parseInt(req.params.id);
+                    console.log(`Received request for ID: ${id}`);
+                    
+                    Foto.findAll({
+                        attributes: { exclude:
+                        ["updatedAt"] } ,
+                        include: [{
+                        model: Etiqueta,
+                        attributes: ['texto'],
+                        through: {attributes: []}
+                        }],
+                        where: {
+                            id: {[Op.and]: [id]}
+                
+                        }                        })
+                        .then(fotos => {
+                        res.render('vistaFormulario', { title: 'Fotos', fotos: fotos });
+                        })
+                        .catch(error =>
+                        res.status(400).send(error))
+                    });
+                
+            
 module.exports = router;
